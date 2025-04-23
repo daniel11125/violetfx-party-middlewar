@@ -181,7 +181,12 @@ function generatePartyKakao() {
       const container = document.getElementById("party");
       container.innerHTML = "";
 
-      data.forEach(party => {
+      const urlHost = getHostFromURL(); // ?host=꼬꼬먀 또는 /app/partyList/꼬꼬먀
+      const targetParties = urlHost
+        ? data.filter(p => p.host.trim() === urlHost.trim())
+        : data;
+
+      targetParties.forEach(party => {
         const ids = party.members.map(m => m.trim());
         const filtered = deduplicateByIdKeepHighestPower(
           characters.filter(c => ids.includes(c.id))
@@ -190,7 +195,7 @@ function generatePartyKakao() {
         const partyGroup = document.createElement("div");
         partyGroup.style.marginBottom = "60px";
 
-        // 🏷️ 파티 제목
+        // 🎉 제목
         const title = document.createElement("h3");
         title.innerText = `🎉 ${party.host}님의 파티`;
         title.style.textAlign = "center";
@@ -200,7 +205,7 @@ function generatePartyKakao() {
         title.style.fontFamily = "'Nanum Gothic', sans-serif";
         partyGroup.appendChild(title);
 
-        // 🧑‍✈️ 파티장 캐릭터 카드
+        // 🧑‍✈️ 파티장
         const hostCharacter = filtered.find(c => c.id === party.host);
         if (hostCharacter) {
           const hostCardWrapper = document.createElement("div");
@@ -211,7 +216,7 @@ function generatePartyKakao() {
           partyGroup.appendChild(hostCardWrapper);
         }
 
-        // 👥 나머지 파티원 캐릭터 카드
+        // 👥 파티원
         const membersRow = document.createElement("div");
         membersRow.style.display = "flex";
         membersRow.style.flexWrap = "wrap";
@@ -230,6 +235,7 @@ function generatePartyKakao() {
       console.error("❌ 카카오 파티 데이터 로딩 실패", err);
     });
 }
+
 
 
 
