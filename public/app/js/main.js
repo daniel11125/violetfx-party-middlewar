@@ -136,21 +136,76 @@ async function generatePartyKakao() {
 }
 
 function createCharacterCard(c) {
-  const wrapper = document.createElement("div");
-  wrapper.style.border = "1px solid #ccc";
-  wrapper.style.borderRadius = "8px";
-  wrapper.style.width = "200px";
-  wrapper.style.padding = "10px";
-  wrapper.style.textAlign = "center";
-  wrapper.className = "card";
-  wrapper.innerHTML = `
-    <div><strong>${c.id}</strong> (${c.class})</div>
-    <div>⚔️ ${c.power}</div>
-    <div>${c.msg ? `"${c.msg}"` : ""}</div>
-    <div>${getGoldStars(c.power >= 23000 ? 6 : c.power >= 21000 ? 5 : c.power >= 19000 ? 4 : 3)}</div>
+  const role = Object.keys(roleMap).find(r => roleMap[r].includes(c.class)) || "기타";
+  const roleIcon = role === "딜러" ? "🗡️" : role === "탱커" ? "🛡️" : "✨";
+
+  let stars = 3;
+  if (c.power >= 19000) stars = 4;
+  if (c.power >= 21000) stars = 5;
+  if (c.power >= 23000) stars = 6;
+
+  const starOverlay = c.sp === 'use'
+    ? `<span class="rainbow-stars">${'★'.repeat(stars)}</span>`
+    : Array.from({ length: stars }, () =>
+        `<span class="star-unit" style="color: gold;">★</span>`).join('');
+
+  const cardWrapper = document.createElement("div");
+  cardWrapper.style.width = "200px";
+  cardWrapper.style.display = "flex";
+  cardWrapper.style.flexDirection = "column";
+  cardWrapper.style.alignItems = "center";
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.width = "200px";
+  card.style.height = "320px";
+  card.style.position = "relative";
+  card.style.borderRadius = "8px";
+  card.style.overflow = "hidden";
+  card.style.transition = "all 0.6s ease";
+  card.style.opacity = "0";
+  card.style.transform = "scale(0.7) translateY(50px)";
+
+  const inner = c.thumbnail
+    ? `<img src="${c.thumbnail}" alt="${c.id}" style="width: 100%; height: 100%; object-fit: cover;">`
+    : `<div style="width: 100%; height: 100%; background: #eee; display: flex; justify-content: center; align-items: center;">
+        <img src="./img/logo.svg" alt="default-logo" style="width: 100px; height: auto;">
+      </div>`;
+
+  const topLeft = `<div style="position: absolute; top: 12px; left: 15px; background: rgba(0,0,0,0.5); color: white; font-size: 13px; padding: 2px 6px; border-radius: 4px;">${c.class}</div>`;
+  const topRight = `<div style="position: absolute; top: 12px; right: 15px; background: rgba(0,0,0,0.5); color: white; font-size: 13px; padding: 2px 6px; border-radius: 4px;">${c.id}</div>`;
+
+  const messageText = (c.msg && c.msg.trim() !== "") ? c.msg.replaceAll('\n', '<br>') : '....';
+  const messageCenter = `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);  color: white; font-size: 14px; padding: 6px 10px; border-radius: 6px; text-align: center; max-width: 90%; font-family: 'Nanum Myeongjo', serif;">&quot;${messageText}&quot;</div>`;
+
+  const bottomOverlay = `
+    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 140px; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); display: flex; align-items: flex-end; justify-content: space-between; padding: 10px 15px 15px; box-sizing: border-box; font-size: 12px; font-weight: bold;">
+      <div style="color: white; font-size: 13px;">${roleIcon} ${role}</div>
+      <div style="color: gold; text-align: right; line-height: 1.3;">
+        <div style="font-size: 20px; font-style: italic; font-family: 'Nanum Myeongjo';">${c.power}</div>
+        <div>${starOverlay}</div>
+      </div>
+    </div>
   `;
-  return wrapper;
+
+  card.innerHTML = inner + topLeft + topRight + messageCenter + bottomOverlay;
+  cardWrapper.appendChild(card);
+
+  setTimeout(() => {
+    card.style.opacity = "1";
+    card.style.transform = "scale(1.05) rotateY(360deg)";
+    card.style.zIndex = "10";
+    card.style.border = "1px solid white";
+    card.style.boxShadow = `
+      0 0 10px rgba(255, 255, 255, 0.4),
+      0 0 30px rgba(255, 255, 255, 0.2),
+      0 0 60px rgba(255, 255, 255, 0.1)
+    `;
+  }, 100 + Math.random() * 300);
+
+  return cardWrapper;
 }
+
 
 function getGoldStars(count) {
   return Array.from({ length: count }, () => `<span style='color:gold'>★</span>`).join('');
