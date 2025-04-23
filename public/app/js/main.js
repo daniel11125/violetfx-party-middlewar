@@ -235,6 +235,13 @@ function generatePartyKakao() {
   fetch("/party")
     .then(res => res.json())
     .then(data => {
+
+
+      if (!data || data.length === 0) {
+        window.location.href = "/app/";
+        return;
+      }
+
       const container = document.getElementById("party");
       container.innerHTML = "";
 
