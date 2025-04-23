@@ -72,7 +72,7 @@ function renderHostParty(hostName) {
     .catch((err) => {
       console.error("❌ 파티 조회 실패:", err);
       document.getElementById("party").innerHTML = `
-        <p style="color:red; text-align:center;">
+        <p style=\"color:red; text-align:center;\">
         ❌ 파티 데이터를 불러오지 못했습니다.<br>${err.message}
         </p>`;
       setTimeout(() => {
