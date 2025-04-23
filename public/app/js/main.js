@@ -208,7 +208,7 @@ function generatePartyKakao() {
         horizontalRow.style.display = "flex";
         horizontalRow.style.alignItems = "flex-start";
         horizontalRow.style.justifyContent = "center";
-        horizontalRow.style.columnGap = "50px"; // ⬅️ 파티장과 파티원 간격
+        horizontalRow.style.columnGap = "30px"; // ⬅️ 파티장과 파티원 간격
         horizontalRow.style.flexWrap = "wrap";
 
         const hostCharacter = filtered.find(c => c.id === party.host);
@@ -243,6 +243,11 @@ function generatePartyKakao() {
 
 window.addEventListener("DOMContentLoaded", () => {
   const host = getHostFromURL();
+ if (host && genKakaoBtn) {
+    genKakaoBtn.style.display = "none";
+  }
+
+
   fetchCharacters().then(() => {
     if (window.location.pathname === "/app/") {
       showAllMembers();

@@ -36,6 +36,11 @@ button {
     }
   }
 
+  a{
+	text-decoration: none;
+	color: #fff;
+  }
+
 body {
 	padding: 0 ; margin: 0;
 }
