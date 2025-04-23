@@ -2,9 +2,17 @@ import express from 'express';
 const app = express();
 const port = process.env.PORT || 3000;
 
-let latestParty = null;
+// ✅ CORS 허용 미들웨어 추가
+app.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', '*'); // 모든 도메인 허용 (또는 'http://localhost:포트번호' 식으로 제한 가능)
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS'); // 허용할 메소드
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  next();
+});
 
 app.use(express.json());
+
+let latestParty = null;
 
 app.post("/api/party", (req, res) => {
   latestParty = req.body;
