@@ -161,11 +161,39 @@ function renderHostParty(host) {
   fetch(`/party/${host}`)
     .then(res => res.json())
     .then(data => {
-      const ids = data.members.map(m => m.trim());
-      const filtered = deduplicateByIdKeepHighestPower(characters.filter(c => ids.includes(c.id)));
+      const filtered = deduplicateByIdKeepHighestPower(
+        characters.filter(c =>
+          data.members.some(m => m.trim().endsWith(c.id))
+        )
+      );
+
       const container = document.getElementById("party");
       container.innerHTML = "";
-      filtered.forEach(c => container.appendChild(createCharacterCard(c)));
+
+      const hostCharacter = filtered.find(c => host.trim().endsWith(c.id));
+      if (hostCharacter) {
+        const horizontalRow = document.createElement("div");
+        horizontalRow.style.display = "flex";
+        horizontalRow.style.flexWrap = "nowrap";
+        horizontalRow.style.overflowX = "auto";
+        horizontalRow.style.columnGap = "30px";
+        horizontalRow.style.justifyContent = "flex-start";
+        horizontalRow.style.alignItems = "flex-start";
+
+        horizontalRow.appendChild(createCharacterCard(hostCharacter));
+
+        const memberContainer = document.createElement("div");
+        memberContainer.style.display = "flex";
+        memberContainer.style.flexWrap = "wrap";
+        memberContainer.style.gap = "30px";
+
+        filtered
+          .filter(c => !host.trim().endsWith(c.id))
+          .forEach(c => memberContainer.appendChild(createCharacterCard(c)));
+
+        horizontalRow.appendChild(memberContainer);
+        container.appendChild(horizontalRow);
+      }
     })
     .catch(err => {
       console.error("❌ 호스트 파티 로딩 실패", err);
@@ -173,6 +201,7 @@ function renderHostParty(host) {
       setTimeout(() => window.location.href = "/app/", 2000);
     });
 }
+
 
 function generatePartyKakao() {
   fetch("/party")
@@ -187,9 +216,10 @@ function generatePartyKakao() {
         : data;
 
       targetParties.forEach(party => {
-        const ids = party.members.map(m => m.trim());
         const filtered = deduplicateByIdKeepHighestPower(
-          characters.filter(c => ids.includes(c.id))
+          characters.filter(c =>
+            party.members.some(m => m.trim().endsWith(c.id))
+          )
         );
 
         const partyGroup = document.createElement("div");
@@ -206,25 +236,25 @@ function generatePartyKakao() {
 
         const horizontalRow = document.createElement("div");
         horizontalRow.style.display = "flex";
+        horizontalRow.style.flexWrap = "nowrap";
+        horizontalRow.style.overflowX = "auto";
+        horizontalRow.style.columnGap = "30px";
+        horizontalRow.style.justifyContent = "flex-start";
         horizontalRow.style.alignItems = "flex-start";
-        horizontalRow.style.justifyContent = "center";
-        horizontalRow.style.columnGap = "30px"; // ⬅️ 파티장과 파티원 간격
-        horizontalRow.style.flexWrap = "wrap";
 
-        const hostCharacter = filtered.find(c => c.id === party.host);
+        const hostCharacter = filtered.find(c => party.host.trim().endsWith(c.id));
         if (hostCharacter) {
-          const hostCard = createCharacterCard(hostCharacter);
-          horizontalRow.appendChild(hostCard);
+          horizontalRow.appendChild(createCharacterCard(hostCharacter));
         }
 
         const memberContainer = document.createElement("div");
         memberContainer.style.display = "flex";
         memberContainer.style.flexWrap = "wrap";
-        memberContainer.style.gap = "30px"; // ⬅️ 파티원끼리 간격
+        memberContainer.style.gap = "30px";
         memberContainer.style.justifyContent = "flex-start";
 
         filtered
-          .filter(c => c.id !== party.host)
+          .filter(c => !party.host.trim().endsWith(c.id))
           .forEach(c => memberContainer.appendChild(createCharacterCard(c)));
 
         horizontalRow.appendChild(memberContainer);
