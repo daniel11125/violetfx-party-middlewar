@@ -181,7 +181,7 @@ function generatePartyKakao() {
       const container = document.getElementById("party");
       container.innerHTML = "";
 
-      const urlHost = getHostFromURL(); // ?host=꼬꼬먀 또는 /app/partyList/꼬꼬먀
+      const urlHost = getHostFromURL();
       const targetParties = urlHost
         ? data.filter(p => p.host.trim() === urlHost.trim())
         : data;
@@ -195,7 +195,6 @@ function generatePartyKakao() {
         const partyGroup = document.createElement("div");
         partyGroup.style.marginBottom = "60px";
 
-        // 🎉 제목
         const title = document.createElement("h3");
         title.innerText = `🎉 ${party.host}님의 파티`;
         title.style.textAlign = "center";
@@ -205,29 +204,31 @@ function generatePartyKakao() {
         title.style.fontFamily = "'Nanum Gothic', sans-serif";
         partyGroup.appendChild(title);
 
-        // 🧑‍✈️ 파티장
+        const horizontalRow = document.createElement("div");
+        horizontalRow.style.display = "flex";
+        horizontalRow.style.alignItems = "flex-start";
+        horizontalRow.style.justifyContent = "center";
+        horizontalRow.style.columnGap = "50px"; // ⬅️ 파티장과 파티원 간격
+        horizontalRow.style.flexWrap = "wrap";
+
         const hostCharacter = filtered.find(c => c.id === party.host);
         if (hostCharacter) {
-          const hostCardWrapper = document.createElement("div");
-          hostCardWrapper.style.display = "flex";
-          hostCardWrapper.style.justifyContent = "center";
-          hostCardWrapper.style.marginBottom = "50px";
-          hostCardWrapper.appendChild(createCharacterCard(hostCharacter));
-          partyGroup.appendChild(hostCardWrapper);
+          const hostCard = createCharacterCard(hostCharacter);
+          horizontalRow.appendChild(hostCard);
         }
 
-        // 👥 파티원
-        const membersRow = document.createElement("div");
-        membersRow.style.display = "flex";
-        membersRow.style.flexWrap = "wrap";
-        membersRow.style.justifyContent = "center";
-        membersRow.style.gap = "20px";
+        const memberContainer = document.createElement("div");
+        memberContainer.style.display = "flex";
+        memberContainer.style.flexWrap = "wrap";
+        memberContainer.style.gap = "30px"; // ⬅️ 파티원끼리 간격
+        memberContainer.style.justifyContent = "flex-start";
 
         filtered
           .filter(c => c.id !== party.host)
-          .forEach(c => membersRow.appendChild(createCharacterCard(c)));
+          .forEach(c => memberContainer.appendChild(createCharacterCard(c)));
 
-        partyGroup.appendChild(membersRow);
+        horizontalRow.appendChild(memberContainer);
+        partyGroup.appendChild(horizontalRow);
         container.appendChild(partyGroup);
       });
     })
@@ -235,6 +236,7 @@ function generatePartyKakao() {
       console.error("❌ 카카오 파티 데이터 로딩 실패", err);
     });
 }
+
 
 
 
