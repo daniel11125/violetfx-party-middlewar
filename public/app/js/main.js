@@ -100,7 +100,7 @@ function renderHostParty(hostName) {
     });
 }
 
-// ✅ 파워 높은 캐릭터만 남기는 중복 제거
+// ✅ 전투력 기준 중복 제거
 function deduplicateByIdKeepHighestPower(characters) {
   const map = new Map();
   characters.forEach(c => {
@@ -110,6 +110,80 @@ function deduplicateByIdKeepHighestPower(characters) {
     }
   });
   return Array.from(map.values());
+}
+
+// ✅ 메인 홈에서 전체 멤버 렌더링
+function showAllMembers() {
+  if (!characters || characters.length === 0) return;
+
+  const partyEl = document.getElementById("party");
+  partyEl.innerHTML = `<div id="all-card-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;"></div>`;
+  const container = document.getElementById("all-card-container");
+
+  characters.forEach((c, i) => {
+    const card = createCharacterCard(c);
+    container.appendChild(card);
+  });
+}
+
+// ✅ 캐릭터 카드 생성 (기초 버전)
+function createCharacterCard(c) {
+  const wrapper = document.createElement("div");
+  wrapper.style.width = "200px";
+  wrapper.style.display = "flex";
+  wrapper.style.flexDirection = "column";
+  wrapper.style.alignItems = "center";
+
+  const card = document.createElement("div");
+  card.className = "card";
+  card.style.width = "200px";
+  card.style.height = "320px";
+  card.style.position = "relative";
+  card.style.borderRadius = "8px";
+  card.style.overflow = "hidden";
+  card.style.transition = "all 0.6s ease";
+  card.style.opacity = "0";
+  card.style.transform = "scale(0.7) translateY(50px)";
+
+  const inner = c.thumbnail
+    ? `<img src="${c.thumbnail}" alt="${c.id}" style="width: 100%; height: 100%; object-fit: cover;">`
+    : `<div style="width: 100%; height: 100%; background: #eee; display: flex; justify-content: center; align-items: center;"><img src="./img/logo.svg" style="width: 100px; height: auto;"></div>`;
+
+  const topLeft = `<div style="position: absolute; top: 12px; left: 15px; background: rgba(0,0,0,0.5); color: white; font-size: 13px; padding: 2px 6px; border-radius: 4px;">${c.class}</div>`;
+  const topRight = `<div style="position: absolute; top: 12px; right: 15px; background: rgba(0,0,0,0.5); color: white; font-size: 13px; padding: 2px 6px; border-radius: 4px;">${c.id}</div>`;
+
+  const msg = c.msg?.trim() ? c.msg.split("\n").join("<br>") : "....";
+  const messageCenter = `<div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: white; font-size: 14px; padding: 6px 10px; border-radius: 6px; text-align: center; max-width: 90%; font-family: 'Nanum Myeongjo', serif;">&quot;${msg}&quot;</div>`;
+
+  const stars = c.power >= 23000 ? 6 : c.power >= 21000 ? 5 : c.power >= 19000 ? 4 : 3;
+  const starOverlay = c.sp === "use"
+    ? `<span class="rainbow-stars">${"★".repeat(stars)}</span>`
+    : Array.from({ length: stars }, () => `<span style='color: gold;'>★</span>`).join("");
+
+  const bottomOverlay = `<div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 140px; background: linear-gradient(to top, rgba(0,0,0,0.6), transparent); display: flex; align-items: flex-end; justify-content: space-between; padding: 10px 15px 15px; box-sizing: border-box; font-size: 12px; font-weight: bold;">
+    <div style="color: white; font-size: 13px;">${c.class}</div>
+    <div style="color: gold; text-align: right; line-height: 1.3;">
+      <div style="font-size: 20px; font-style: italic; font-family: 'Nanum Myeongjo';">${c.power}</div>
+      <div>${starOverlay}</div>
+    </div>
+  </div>`;
+
+  card.innerHTML = inner + topLeft + topRight + messageCenter + bottomOverlay;
+  wrapper.appendChild(card);
+
+  setTimeout(() => {
+    card.style.opacity = "1";
+    card.style.transform = "scale(1.05) rotateY(360deg)";
+    card.style.zIndex = "10";
+    card.style.border = "1px solid white";
+    card.style.boxShadow = `
+      0 0 10px rgba(255, 255, 255, 0.4),
+      0 0 30px rgba(255, 255, 255, 0.2),
+      0 0 60px rgba(255, 255, 255, 0.1)
+    `;
+  }, 100 + Math.random() * 300);
+
+  return wrapper;
 }
 
 // ✅ 페이지 로딩 후 분기 처리
