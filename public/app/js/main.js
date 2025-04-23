@@ -162,13 +162,23 @@ function renderHostParty(host) {
     .then(res => res.json())
     .then(data => {
       const filtered = deduplicateByIdKeepHighestPower(
-        characters.filter(c =>
-          data.members.some(m => m.trim().endsWith(c.id))
-        )
-      );
+		  characters.filter(c =>
+			party.members.some(m => hasMinimumSubstringMatch(m, c.id, 2))
+		  )
+		);
 
       const container = document.getElementById("party");
       container.innerHTML = "";
+
+      // ✅ 🎉 제목 추가
+      const title = document.createElement("h3");
+      title.innerText = `🎉 ${host}님의 파티`;
+      title.style.textAlign = "center";
+      title.style.marginBottom = "20px";
+      title.style.fontSize = "20px";
+      title.style.color = "#fff";
+      title.style.fontFamily = "'Nanum Gothic', sans-serif";
+      container.appendChild(title);
 
       const hostCharacter = filtered.find(c => host.trim().endsWith(c.id));
       if (hostCharacter) {
@@ -176,8 +186,8 @@ function renderHostParty(host) {
         horizontalRow.style.display = "flex";
         horizontalRow.style.flexWrap = "nowrap";
         horizontalRow.style.overflowX = "auto";
-        horizontalRow.style.columnGap = "30px";
-        horizontalRow.style.justifyContent = "flex-start";
+        horizontalRow.style.columnGap = "50px";
+        horizontalRow.style.justifyContent = "center"; // 중앙 정렬
         horizontalRow.style.alignItems = "flex-start";
 
         horizontalRow.appendChild(createCharacterCard(hostCharacter));
@@ -186,6 +196,7 @@ function renderHostParty(host) {
         memberContainer.style.display = "flex";
         memberContainer.style.flexWrap = "wrap";
         memberContainer.style.gap = "30px";
+        memberContainer.style.justifyContent = "center";
 
         filtered
           .filter(c => !host.trim().endsWith(c.id))
@@ -203,6 +214,7 @@ function renderHostParty(host) {
 }
 
 
+
 function generatePartyKakao() {
   fetch("/party")
     .then(res => res.json())
@@ -216,11 +228,11 @@ function generatePartyKakao() {
         : data;
 
       targetParties.forEach(party => {
-        const filtered = deduplicateByIdKeepHighestPower(
-          characters.filter(c =>
-            party.members.some(m => m.trim().endsWith(c.id))
-          )
-        );
+		const filtered = deduplicateByIdKeepHighestPower(
+		  characters.filter(c =>
+			party.members.some(m => hasMinimumSubstringMatch(m, c.id, 2))
+		  )
+		);
 
         const partyGroup = document.createElement("div");
         partyGroup.style.marginBottom = "60px";
@@ -239,7 +251,7 @@ function generatePartyKakao() {
         horizontalRow.style.flexWrap = "nowrap";
         horizontalRow.style.overflowX = "auto";
         horizontalRow.style.columnGap = "30px";
-        horizontalRow.style.justifyContent = "flex-start";
+        horizontalRow.style.justifyContent = "center";
         horizontalRow.style.alignItems = "flex-start";
 
         const hostCharacter = filtered.find(c => party.host.trim().endsWith(c.id));
@@ -251,7 +263,7 @@ function generatePartyKakao() {
         memberContainer.style.display = "flex";
         memberContainer.style.flexWrap = "wrap";
         memberContainer.style.gap = "30px";
-        memberContainer.style.justifyContent = "flex-start";
+        memberContainer.style.justifyContent = "center";
 
         filtered
           .filter(c => !party.host.trim().endsWith(c.id))
@@ -267,6 +279,19 @@ function generatePartyKakao() {
     });
 }
 
+
+
+function hasMinimumSubstringMatch(a, b, minLength = 2) {
+  a = a.trim();
+  b = b.trim();
+
+  for (let i = 0; i <= a.length - minLength; i++) {
+    const substr = a.substring(i, i + minLength);
+    if (b.includes(substr)) return true;
+  }
+
+  return false;
+}
 
 
 
