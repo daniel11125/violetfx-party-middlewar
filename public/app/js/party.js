@@ -1,5 +1,3 @@
-// ✅ 캐릭터 데이터 fetch 이후 characters 전역에 저장됨을 가정
-let characters = [];
 
 // 🧠 URL에서 호스트 추출 함수
 function getHostFromURL() {
