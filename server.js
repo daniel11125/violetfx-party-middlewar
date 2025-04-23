@@ -7,11 +7,11 @@ const port = process.env.PORT || 3000;
 
 let latestParty = [];
 
-// ✅ __dirname 계산 (ESM 환경용)
+// ✅ __dirname 계산 (ESM 환경)
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// ✅ JSON 바디 파서
+// ✅ JSON 파서 → 반드시 위에 있어야 POST에서 작동함
 app.use(express.json());
 
 // ✅ CORS 허용
@@ -22,12 +22,11 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ /app 경로 정적 파일 제공 (index.html 등)
-app.use('/app', express.static(path.join(__dirname, 'public/app')));
-
-// ✅ 루트 상태 확인
-app.get("/", (req, res) => {
-  res.send("✅ Violet FX 파티 미들웨어 서버가 정상 실행 중입니다.");
+// ✅ /api/party 먼저 정의 (메신저봇 수신용)
+app.post("/api/party", (req, res) => {
+  latestParty = req.body;
+  console.log("📥 파티 수신:", latestParty);
+  res.send({ status: "ok" });
 });
 
 // ✅ 전체 파티 목록 조회
@@ -35,11 +34,10 @@ app.get("/party", (req, res) => {
   res.json(latestParty || { message: "아직 수신된 파티 없음" });
 });
 
-// ✅ 특정 호스트의 파티 조회
+// ✅ 호스트별 파티 조회
 app.get("/party/:host", (req, res) => {
   const hostName = decodeURIComponent(req.params.host).trim();
   const result = (latestParty || []).find(p => p.host.trim() === hostName);
-
   if (result) {
     res.json(result);
   } else {
@@ -47,11 +45,12 @@ app.get("/party/:host", (req, res) => {
   }
 });
 
-// ✅ 파티 정보 수신 (POST)
-app.post("/api/party", (req, res) => {
-  latestParty = req.body;
-  console.log("📥 파티 수신:", latestParty);
-  res.send({ status: "ok" });
+// ✅ 정적 HTML 제공 (/app)
+app.use("/app", express.static(path.join(__dirname, "public/app")));
+
+// ✅ 루트 페이지
+app.get("/", (req, res) => {
+  res.send("✅ Violet FX 파티 미들웨어 서버 정상 실행 중입니다.");
 });
 
 // ✅ 서버 실행
