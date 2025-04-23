@@ -42,6 +42,84 @@ function fetchCharacters() {
     });
 }
 
+// ✅ 버튼 상태 토글
+function showRecallButtonOnly() {
+  const newBtn = document.querySelector(".newparty");
+  const recallBtn = document.querySelector(".recall");
+  const recallThreeBtn = document.querySelector(".recallthree");
+
+  if (newBtn) newBtn.style.display = "none";
+  if (recallBtn) recallBtn.style.display = "inline-block";
+  if (recallThreeBtn) recallThreeBtn.style.display = "inline-block";
+}
+
+// ✅ 전체 멤버 표시
+function showAllMembers() {
+  const partyEl = document.getElementById("party");
+  partyEl.innerHTML = "<div id='all-card-container' style='display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;'></div>";
+  const container = document.getElementById("all-card-container");
+
+  characters.forEach((c, i) => {
+    const card = createCharacterCard(c);
+    container.appendChild(card);
+  });
+}
+
+// ✅ 카카오 연동 전체 파티 표시
+async function generatePartyKakao() {
+  try {
+    const res = await fetch("/party");
+    if (!res.ok) throw new Error("파티 데이터 요청 실패");
+
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) {
+      alert("🔍 카카오 파티 데이터가 없습니다.");
+      return;
+    }
+
+    const partyEl = document.getElementById("party");
+    partyEl.innerHTML = "";
+
+    data.forEach(partyData => {
+      const ids = partyData.members.map(m => m.trim().toLowerCase());
+      const filtered = deduplicateByIdKeepHighestPower(
+        characters.filter(c => ids.includes(c.id.trim().toLowerCase()))
+      );
+
+      const title = document.createElement("h3");
+      title.textContent = `💠 파티장: ${partyData.host.trim()}`;
+      title.style.textAlign = "center";
+      title.style.marginBottom = "10px";
+
+      const container = document.createElement("div");
+      container.className = "party-row";
+      container.style.display = "flex";
+      container.style.flexWrap = "wrap";
+      container.style.justifyContent = "center";
+      container.style.gap = "20px";
+      container.style.marginBottom = "40px";
+
+      filtered.forEach(c => {
+        const card = createCharacterCard(c);
+        container.appendChild(card);
+      });
+
+      const totalPower = filtered.reduce((sum, c) => sum + c.power, 0);
+      const totalEl = document.createElement("p");
+      totalEl.style.textAlign = "center";
+      totalEl.style.marginBottom = "30px";
+      totalEl.innerHTML = `<strong>⚔️ 총 전투력: ${totalPower}</strong>`;
+
+      partyEl.appendChild(title);
+      partyEl.appendChild(container);
+      partyEl.appendChild(totalEl);
+    });
+  } catch (err) {
+    console.error("❌ 카카오 파티 불러오기 실패:", err);
+    alert("❌ 카카오 파티 데이터를 불러오지 못했습니다.");
+  }
+}
+
 // ✅ 특정 호스트의 파티 시각화
 function renderHostParty(hostName) {
   console.log("🎯 조회할 호스트:", hostName);
@@ -112,21 +190,7 @@ function deduplicateByIdKeepHighestPower(characters) {
   return Array.from(map.values());
 }
 
-// ✅ 메인 홈에서 전체 멤버 렌더링
-function showAllMembers() {
-  if (!characters || characters.length === 0) return;
-
-  const partyEl = document.getElementById("party");
-  partyEl.innerHTML = `<div id="all-card-container" style="display: flex; flex-wrap: wrap; justify-content: center; gap: 20px;"></div>`;
-  const container = document.getElementById("all-card-container");
-
-  characters.forEach((c, i) => {
-    const card = createCharacterCard(c);
-    container.appendChild(card);
-  });
-}
-
-// ✅ 캐릭터 카드 생성 (기초 버전)
+// ✅ 캐릭터 카드 생성 (간략화된 기본 버전)
 function createCharacterCard(c) {
   const wrapper = document.createElement("div");
   wrapper.style.width = "200px";
@@ -186,7 +250,7 @@ function createCharacterCard(c) {
   return wrapper;
 }
 
-// ✅ 페이지 로딩 후 분기 처리
+// ✅ 페이지 로딩 후 자동 분기
 window.addEventListener("DOMContentLoaded", () => {
   const host = getHostFromURL();
 
@@ -195,8 +259,6 @@ window.addEventListener("DOMContentLoaded", () => {
       showAllMembers();
     } else if (window.location.pathname.startsWith("/app/partyList") && host) {
       renderHostParty(host);
-    } else {
-      console.warn("🚫 알 수 없는 경로입니다.");
     }
   });
 });
