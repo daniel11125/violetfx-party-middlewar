@@ -1,0 +1,174 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  background-color: #1f1f1f;
+  color: #f0f0f0;
+  text-align: center;
+  padding: 2rem;
+}
+.container {
+	position: relative;
+	z-index: 1;
+}
+
+button {
+  padding: 10px 20px;
+  font-size: 1rem;
+  margin-top: 1rem;
+  cursor: pointer;
+  background-color: #4caf50;
+  border: none;
+  color: white;
+  border-radius: 5px;
+}
+.logo {
+	margin-top: 50px;
+}
+.logo svg {
+	fill : #fff;
+	    transform: scale(2);
+    transform-origin: left;
+}
+
+
+  @media (max-width: 600px) {
+    .card-container {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+body {
+	padding: 0 ; margin: 0;
+}
+    .bgbox {
+	position: absolute;
+	top: 0;
+	left: 0;
+  width: 100%;
+  height: 800px;
+  background: url('../img/bg.png') center -200px no-repeat;
+  background-size: cover;
+
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  -webkit-mask-size: 100% 100%;
+  -webkit-mask-repeat: no-repeat;
+
+  mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 1) 0%, rgba(0, 0, 0, 0) 100%);
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+    }
+
+.card-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px 0;
+}
+
+@keyframes glowPulse  {
+  from {
+    /* 초기 상태: 약간 흐린 글로우 */
+    box-shadow: 
+      0 0 8px 4px rgba(255, 255, 255, 0.7),
+      0 0 15px 8px rgba(255, 255, 255, 0.3);
+  }
+  to {
+    /* 최대 상태: 조금 더 밝고 퍼지는 글로우 */
+    box-shadow: 
+      0 0 12px 4px rgba(255, 255, 255, 0.9),
+      0 0 25px 10px rgba(255, 255, 255, 0.5);
+  }
+}
+.card.glow {
+  /* 0px offset (좌우/상하 0)로 요소 주위에 고르게 퍼진 하얀 광채 */
+  box-shadow: 
+    0 0 8px 4px rgba(255, 255, 255, 0.7),   /* 안쪽층: 진한 흰빛 작은 후광 */
+    0 0 15px 8px rgba(255, 255, 255, 0.3);  /* 바깥층: 옅은 흰빛 큰 후광 */
+  /* 부드럽게 밝기 변화하는 애니메이션 */
+  animation: glowPulse 3s ease-in-out infinite alternate;
+}
+
+#
+
+.star-unit {
+  display: inline-block;
+  font-size: 12px;
+  line-height: 1;
+  margin: 0 1px;
+  font-family: 'Nanum Myeongjo', serif;
+}
+
+@keyframes glowTwinkle {
+  0%, 100% {
+    text-shadow: 0 0 5px rgba(255,255,255,0.3);
+    transform: scale(1);
+  }
+  50% {
+    text-shadow: 0 0 10px rgba(255,255,255,0.7);
+    transform: scale(1);
+  }
+}
+.glow-star {
+  animation: glowTwinkle 2s infinite ease-in-out;
+}
+
+
+.rainbow-stars {
+  display: inline-block;
+  background: linear-gradient(90deg, red, orange, yellow, green, blue, indigo, violet);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 14px;
+  line-height: 1;
+  font-family: 'Nanum Myeongjo', serif;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  animation: rainbowFlow 4s ease-in-out infinite;
+}
+
+@keyframes rainbowFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+
+#party {
+  margin-top: 2rem;
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+  .card-skeleton {
+    width: 200px;
+    height: 320px;
+    border-radius: 8px;
+    background: #ccc;
+    animation: spin 0.8s linear infinite;
+    box-shadow: 0 0 10px rgba(0,0,0,0.2);
+  }
+
+  @keyframes spin {
+    0% { transform: rotateY(0deg); }
+    100% { transform: rotateY(360deg); }
+  }
+
+  .card {
+    opacity: 0;
+    transform: scale(0.95);
+    transition: opacity 0.3s ease, transform 0.3s ease;
+  }
+
+  .card.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+
