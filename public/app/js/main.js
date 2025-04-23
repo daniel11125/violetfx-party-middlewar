@@ -153,6 +153,11 @@ function createCharacterCard(c) {
 }
 
 function renderHostParty(host) {
+  if (host === "all") {
+    generatePartyKakao();
+    return;
+  }
+
   fetch(`/party/${host}`)
     .then(res => res.json())
     .then(data => {
@@ -166,6 +171,29 @@ function renderHostParty(host) {
       console.error("❌ 호스트 파티 로딩 실패", err);
       document.getElementById("party").innerHTML = `<p style='color:red;text-align:center;'>호스트 파티를 불러오지 못했습니다.<br>${err.message}</p>`;
       setTimeout(() => window.location.href = "/app/", 2000);
+    });
+}
+
+function generatePartyKakao() {
+  fetch("/party")
+    .then(res => res.json())
+    .then(data => {
+      const container = document.getElementById("party");
+      container.innerHTML = "";
+      data.forEach(party => {
+        const ids = party.members.map(m => m.trim());
+        const filtered = deduplicateByIdKeepHighestPower(characters.filter(c => ids.includes(c.id)));
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.flexWrap = "wrap";
+        row.style.justifyContent = "center";
+        row.style.gap = "20px";
+        filtered.forEach(c => row.appendChild(createCharacterCard(c)));
+        container.appendChild(row);
+      });
+    })
+    .catch(err => {
+      console.error("❌ 카카오 파티 데이터 로딩 실패", err);
     });
 }
 
