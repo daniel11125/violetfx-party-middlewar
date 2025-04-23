@@ -12,7 +12,7 @@ app.use((req, res, next) => {
 
 app.use(express.json());
 
-let latestParty = null;
+let latestParty = [];
 
 app.post("/api/party", (req, res) => {
   latestParty = req.body;
@@ -21,7 +21,10 @@ app.post("/api/party", (req, res) => {
 });
 
 app.get("/party", (req, res) => {
-  res.json(latestParty || { message: "아직 수신된 파티 없음" });
+  if (!latestParty || latestParty.length === 0) {
+    return res.status(200).json({ message: "아직 수신된 파티 없음" });
+  }
+  res.status(200).json(latestParty);
 });
 
 app.listen(port, () => {
