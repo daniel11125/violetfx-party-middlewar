@@ -243,6 +243,9 @@ function generatePartyKakao() {
 
 window.addEventListener("DOMContentLoaded", () => {
   const host = getHostFromURL();
+  const genKakaoBtn = document.querySelector(".genkakaoparty");
+
+
  if (host && genKakaoBtn) {
     genKakaoBtn.style.display = "none";
   }
