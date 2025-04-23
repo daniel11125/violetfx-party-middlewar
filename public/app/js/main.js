@@ -160,17 +160,17 @@ function renderHostParty(host) {
 
   fetch(`/party/${host}`)
     .then(res => res.json())
-    .then(data => {
+    .then(party => {
       const filtered = deduplicateByIdKeepHighestPower(
-		  characters.filter(c =>
-			party.members.some(m => hasMinimumSubstringMatch(m, c.id, 2))
-		  )
-		);
+        characters.filter(c =>
+          party.members.some(m => hasMinimumSubstringMatch(m, c.id, 2))
+        )
+      );
 
       const container = document.getElementById("party");
       container.innerHTML = "";
 
-      // ✅ 🎉 제목 추가
+      // 🎉 제목
       const title = document.createElement("h3");
       title.innerText = `🎉 ${host}님의 파티`;
       title.style.textAlign = "center";
@@ -180,18 +180,27 @@ function renderHostParty(host) {
       title.style.fontFamily = "'Nanum Gothic', sans-serif";
       container.appendChild(title);
 
-      const hostCharacter = filtered.find(c => host.trim().endsWith(c.id));
+      // 🧑‍✈️ 파티장 찾기
+      const hostCharacter = filtered.find(c =>
+        hasMinimumSubstringMatch(party.host, c.id, 2)
+      );
+
       if (hostCharacter) {
+        // 전체 카드 래퍼
         const horizontalRow = document.createElement("div");
         horizontalRow.style.display = "flex";
-        horizontalRow.style.flexWrap = "nowrap";
-        horizontalRow.style.overflowX = "auto";
-        horizontalRow.style.columnGap = "50px";
-        horizontalRow.style.justifyContent = "center"; // 중앙 정렬
+        horizontalRow.style.flexWrap = "wrap";
+        horizontalRow.style.justifyContent = "center";
         horizontalRow.style.alignItems = "flex-start";
+        horizontalRow.style.gap = "30px";
+        horizontalRow.style.width = "100%";
 
-        horizontalRow.appendChild(createCharacterCard(hostCharacter));
+        // 파티장 카드 먼저
+        const hostWrapper = document.createElement("div");
+        hostWrapper.appendChild(createCharacterCard(hostCharacter));
+        horizontalRow.appendChild(hostWrapper);
 
+        // 파티원 그룹
         const memberContainer = document.createElement("div");
         memberContainer.style.display = "flex";
         memberContainer.style.flexWrap = "wrap";
@@ -199,16 +208,23 @@ function renderHostParty(host) {
         memberContainer.style.justifyContent = "center";
 
         filtered
-          .filter(c => !host.trim().endsWith(c.id))
+          .filter(c => !hasMinimumSubstringMatch(party.host, c.id, 2)) // 파티장 제외
           .forEach(c => memberContainer.appendChild(createCharacterCard(c)));
 
         horizontalRow.appendChild(memberContainer);
-        container.appendChild(horizontalRow);
+
+        // 파티 그룹 묶기
+        const partyGroup = document.createElement("div");
+        partyGroup.style.marginBottom = "60px";
+        partyGroup.appendChild(horizontalRow);
+
+        container.appendChild(partyGroup);
       }
     })
     .catch(err => {
       console.error("❌ 호스트 파티 로딩 실패", err);
-      document.getElementById("party").innerHTML = `<p style='color:red;text-align:center;'>호스트 파티를 불러오지 못했습니다.<br>${err.message}</p>`;
+      document.getElementById("party").innerHTML =
+        `<p style='color:red;text-align:center;'>호스트 파티를 불러오지 못했습니다.<br>${err.message}</p>`;
       setTimeout(() => window.location.href = "/app/", 2000);
     });
 }
@@ -228,15 +244,17 @@ function generatePartyKakao() {
         : data;
 
       targetParties.forEach(party => {
-		const filtered = deduplicateByIdKeepHighestPower(
-		  characters.filter(c =>
-			party.members.some(m => hasMinimumSubstringMatch(m, c.id, 2))
-		  )
-		);
+        const filtered = deduplicateByIdKeepHighestPower(
+          characters.filter(c =>
+            party.members.some(m => hasMinimumSubstringMatch(m, c.id, 2))
+          )
+        );
 
+        // 파티 전체 감싸는 그룹
         const partyGroup = document.createElement("div");
         partyGroup.style.marginBottom = "60px";
 
+        // 🎉 제목
         const title = document.createElement("h3");
         title.innerText = `🎉 ${party.host}님의 파티`;
         title.style.textAlign = "center";
@@ -246,19 +264,26 @@ function generatePartyKakao() {
         title.style.fontFamily = "'Nanum Gothic', sans-serif";
         partyGroup.appendChild(title);
 
+        // 가로 카드 레이아웃
         const horizontalRow = document.createElement("div");
         horizontalRow.style.display = "flex";
-        horizontalRow.style.flexWrap = "nowrap";
-        horizontalRow.style.overflowX = "auto";
-        horizontalRow.style.columnGap = "30px";
+        horizontalRow.style.flexWrap = "wrap";
         horizontalRow.style.justifyContent = "center";
         horizontalRow.style.alignItems = "flex-start";
+        horizontalRow.style.gap = "30px";
+        horizontalRow.style.width = "100%";
 
-        const hostCharacter = filtered.find(c => party.host.trim().endsWith(c.id));
+        // 🧑‍✈️ 파티장
+        const hostCharacter = filtered.find(c =>
+          hasMinimumSubstringMatch(party.host, c.id, 2)
+        );
         if (hostCharacter) {
-          horizontalRow.appendChild(createCharacterCard(hostCharacter));
+          const hostWrapper = document.createElement("div");
+          hostWrapper.appendChild(createCharacterCard(hostCharacter));
+          horizontalRow.appendChild(hostWrapper); // 파티장 먼저 추가
         }
 
+        // 👥 파티원
         const memberContainer = document.createElement("div");
         memberContainer.style.display = "flex";
         memberContainer.style.flexWrap = "wrap";
@@ -266,7 +291,7 @@ function generatePartyKakao() {
         memberContainer.style.justifyContent = "center";
 
         filtered
-          .filter(c => !party.host.trim().endsWith(c.id))
+          .filter(c => !hasMinimumSubstringMatch(party.host, c.id, 2)) // 파티장 제외
           .forEach(c => memberContainer.appendChild(createCharacterCard(c)));
 
         horizontalRow.appendChild(memberContainer);
@@ -293,6 +318,19 @@ function hasMinimumSubstringMatch(a, b, minLength = 2) {
   return false;
 }
 
+function deduplicateByIdKeepHighestPower(arr) {
+  const map = new Map();
+
+  arr.forEach(c => {
+    const existing = map.get(c.id);
+
+    if (!existing || c.power > existing.power) {
+      map.set(c.id, c); // 전투력이 더 높으면 교체
+    }
+  });
+
+  return Array.from(map.values());
+}
 
 
 
