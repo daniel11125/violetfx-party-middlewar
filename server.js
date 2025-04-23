@@ -1,13 +1,20 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
 const app = express();
 const port = process.env.PORT || 3000;
 
 let latestParty = [];
 
-// JSON 바디 파서
+// ✅ __dirname 계산 (ESM 환경용)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ✅ JSON 바디 파서
 app.use(express.json());
 
-// ✅ CORS 허용 미들웨어
+// ✅ CORS 허용
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
@@ -15,12 +22,15 @@ app.use((req, res, next) => {
   next();
 });
 
+// ✅ /app 경로 정적 파일 제공 (index.html 등)
+app.use('/app', express.static(path.join(__dirname, 'public/app')));
+
 // ✅ 루트 상태 확인
 app.get("/", (req, res) => {
   res.send("✅ Violet FX 파티 미들웨어 서버가 정상 실행 중입니다.");
 });
 
-// ✅ 전체 파티 조회
+// ✅ 전체 파티 목록 조회
 app.get("/party", (req, res) => {
   res.json(latestParty || { message: "아직 수신된 파티 없음" });
 });
@@ -44,7 +54,7 @@ app.post("/api/party", (req, res) => {
   res.send({ status: "ok" });
 });
 
-// ✅ 서버 시작
+// ✅ 서버 실행
 app.listen(port, () => {
   console.log(`✅ 미들웨어 서버 실행 중: http://localhost:${port}`);
 });
