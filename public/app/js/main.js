@@ -180,22 +180,58 @@ function generatePartyKakao() {
     .then(data => {
       const container = document.getElementById("party");
       container.innerHTML = "";
+
       data.forEach(party => {
         const ids = party.members.map(m => m.trim());
-        const filtered = deduplicateByIdKeepHighestPower(characters.filter(c => ids.includes(c.id)));
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.flexWrap = "wrap";
-        row.style.justifyContent = "center";
-        row.style.gap = "20px";
-        filtered.forEach(c => row.appendChild(createCharacterCard(c)));
-        container.appendChild(row);
+        const filtered = deduplicateByIdKeepHighestPower(
+          characters.filter(c => ids.includes(c.id))
+        );
+
+        const partyGroup = document.createElement("div");
+        partyGroup.style.marginBottom = "60px";
+
+        // 🏷️ 파티 제목
+        const title = document.createElement("h3");
+        title.innerText = `🎉 ${party.host}님의 파티`;
+        title.style.textAlign = "center";
+        title.style.marginBottom = "20px";
+        title.style.fontSize = "20px";
+        title.style.color = "#fff";
+        title.style.fontFamily = "'Nanum Gothic', sans-serif";
+        partyGroup.appendChild(title);
+
+        // 🧑‍✈️ 파티장 캐릭터 카드
+        const hostCharacter = filtered.find(c => c.id === party.host);
+        if (hostCharacter) {
+          const hostCardWrapper = document.createElement("div");
+          hostCardWrapper.style.display = "flex";
+          hostCardWrapper.style.justifyContent = "center";
+          hostCardWrapper.style.marginBottom = "50px";
+          hostCardWrapper.appendChild(createCharacterCard(hostCharacter));
+          partyGroup.appendChild(hostCardWrapper);
+        }
+
+        // 👥 나머지 파티원 캐릭터 카드
+        const membersRow = document.createElement("div");
+        membersRow.style.display = "flex";
+        membersRow.style.flexWrap = "wrap";
+        membersRow.style.justifyContent = "center";
+        membersRow.style.gap = "20px";
+
+        filtered
+          .filter(c => c.id !== party.host)
+          .forEach(c => membersRow.appendChild(createCharacterCard(c)));
+
+        partyGroup.appendChild(membersRow);
+        container.appendChild(partyGroup);
       });
     })
     .catch(err => {
       console.error("❌ 카카오 파티 데이터 로딩 실패", err);
     });
 }
+
+
 
 window.addEventListener("DOMContentLoaded", () => {
   const host = getHostFromURL();
