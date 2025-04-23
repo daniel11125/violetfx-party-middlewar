@@ -2,6 +2,10 @@ import express from 'express';
 const app = express();
 const port = process.env.PORT || 3000;
 
+let latestParty = [];
+
+app.use(express.json());
+
 // ✅ CORS 허용 미들웨어 추가
 app.use((req, res, next) => {
   res.setHeader('Access-Control-Allow-Origin', '*'); // 모든 도메인 허용 (또는 'http://localhost:포트번호' 식으로 제한 가능)
@@ -10,9 +14,6 @@ app.use((req, res, next) => {
   next();
 });
 
-app.use(express.json());
-
-let latestParty = [];
 
 app.post("/api/party", (req, res) => {
   latestParty = req.body;
@@ -21,10 +22,7 @@ app.post("/api/party", (req, res) => {
 });
 
 app.get("/party", (req, res) => {
-  if (!latestParty || latestParty.length === 0) {
-    return res.status(200).json({ message: "아직 수신된 파티 없음" });
-  }
-  res.status(200).json(latestParty);
+  res.json(latestParty || { message: "아직 수신된 파티 없음" });
 });
 
 app.listen(port, () => {
