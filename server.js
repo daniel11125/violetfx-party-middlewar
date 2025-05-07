@@ -50,7 +50,7 @@ app.post("/rankget", async (req, res) => {
   const { serverid, classid, t } = req.body;
 
   if (!serverid || !classid || !t) {
-    return res.status(400).json({ error: "serverid, classid, t \uD30C\uB77C\uBBF8\uD130\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4." });
+    return res.status(400).json({ error: "serverid, classid, t 파라미터가 필요합니다." });
   }
 
   const formData = new URLSearchParams();
@@ -63,16 +63,35 @@ app.post("/rankget", async (req, res) => {
       method: "POST",
       body: formData,
       headers: {
-        "Content-Type": "application/x-www-form-urlencoded"
+        "Content-Type": "application/x-www-form-urlencoded",
+        "User-Agent": "Mozilla/5.0", // 브라우저 흉내
+        "Referer": "https://mabinogimobile.nexon.com/Ranking/List?t=1" // 요청 출처 지정
       }
     });
 
-    const data = await response.json();
+    const rawText = await response.text();
+
+    // 응답이 HTML일 경우 JSON 파싱 전에 필터
+    if (rawText.trim().startsWith("<")) {
+      return res.status(502).json({
+        error: "마비노기 서버에서 HTML 응답이 반환되었습니다.",
+        detail: "로그인 또는 접근 차단일 수 있습니다.",
+        preview: rawText.slice(0, 300)
+      });
+    }
+
+    // JSON으로 파싱
+    const data = JSON.parse(rawText);
     res.json(data);
+
   } catch (error) {
-    res.status(500).json({ error: "\uB9C8\uBE44\uB178\uAE30 \uC11C\uBC84 \uC694\uCCAD \uC2E4\uD328", detail: error.message });
+    res.status(500).json({
+      error: "마비노기 서버 요청 실패",
+      detail: error.message
+    });
   }
 });
+
 
 
 // ✅ 정적 HTML/JS/CSS 제공

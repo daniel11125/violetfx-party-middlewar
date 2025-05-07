@@ -354,7 +354,10 @@ const classIdMap = {
 async function fetchAllRankings() {
 	console.log("testcode")
   const serverId = 3;
-  for (let c of characters) {
+  const testCharacters = characters.slice(0, 2);
+
+
+  for (let c of testCharacters) {
     const classId = classIdMap[c.class];
     if (!classId) {
       console.warn(`❌ 클래스 ID 없음: ${c.class}`);
