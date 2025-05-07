@@ -69,7 +69,11 @@ app.post("/rankget", async (req, res) => {
   }
 
   try {
-    const browser = await puppeteer.launch({ headless: true });
+    const browser = await puppeteer.launch({ 
+		headless: true,			
+		args: ['--no-sandbox', '--disable-setuid-sandbox']
+	});
+
     const page = await browser.newPage();
 
     await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", { waitUntil: "networkidle0" });
