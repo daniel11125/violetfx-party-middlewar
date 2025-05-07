@@ -15,8 +15,7 @@ const __dirname = path.dirname(__filename);
 
 
 
-// ✅ JSON 바디 파서
-app.use(express.json());
+
 
 // ✅ CORS 허용
 app.use((req, res, next) => {
@@ -33,6 +32,9 @@ app.options("*", (req, res) => {
   res.sendStatus(200);
 });
 
+
+// ✅ JSON 바디 파서
+app.use(express.json());
 
 // ✅ 파티 수신 API (Violet FX 봇에서 사용)
 app.post("/api/party", (req, res) => {
