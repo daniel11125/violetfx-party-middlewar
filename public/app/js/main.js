@@ -355,6 +355,7 @@ async function fetchAllRankings() {
   console.log("✅ 랭킹 조회 시작");
 
   const serverId = 3;
+  const classId = 0
   const testCharacters = characters.slice(0, 1); // 실제 적용시 전체로 교체
 
   for (let c of testCharacters) {
@@ -369,8 +370,8 @@ async function fetchAllRankings() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          serverid: serverId,
-          classid: classId,
+          serverid: "3",
+          classid: "0",
           t: "1",
           id: c.id,
           className: c.class

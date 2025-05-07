@@ -71,12 +71,15 @@ app.post("/rankget", async (req, res) => {
   }
 
   const formData = new URLSearchParams();
-  formData.append("serverid", serverid);
-  formData.append("classid", classid);
-  formData.append("t", t);
+  formData.append("t", t);            // 랭킹 타입
+  formData.append("pageno", "1");     // 페이지 번호 (고정)
+  formData.append("s", serverid);     // 서버 ID
+  formData.append("c", classid);      // 클래스 ID
+  formData.append("search", id);      // 캐릭터명
+
 
   try {
-    const response = await fetch("https://mabinogimobile.nexon.com/Ranking/GetRankList", {
+    const response = await fetch("https://mabinogimobile.nexon.com/Ranking/List/rankdata", {
       method: "POST",
       body: formData,
       headers: {
@@ -85,6 +88,7 @@ app.post("/rankget", async (req, res) => {
         "Referer": "https://mabinogimobile.nexon.com/Ranking/List?t=1"
       }
     });
+
 
     const rawText = await response.text();
 
