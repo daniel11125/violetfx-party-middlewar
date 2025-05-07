@@ -340,6 +340,46 @@ function deduplicateByIdKeepHighestPower(arr) {
 }
 
 
+const classIdMap = {
+  "전사": 1285686831, "대검전사": 2077040965, "검술사": 958792831, "궁수": 995607437,
+  "석궁사수": 1468161402, "장궁병": 1901800669, "마법사": 1876490724, "화염술사": 1452582855,
+  "빙결술사": 1262278397, "힐러": 323147599, "사제": 1504253211, "수도사": 204163716,
+  "음유시인": 1319349030, "댄서": 413919140, "악사": 956241373, "도적": 1443648579,
+  "격투가": 1790463651, "듀얼블레이드": 1957076952, "견습 전사": 33220478,
+  "견습 궁수": 1600175531, "견습 마법사": 1497581170, "견습 힐러": 1795991954,
+  "견습 음유시인": 2017961297, "견습 도적": 2058842272
+};
+
+
+async function fetchAllRankings() {
+	console.log("testcode")
+  const serverId = 3;
+  for (let c of characters) {
+    const classId = classIdMap[c.class];
+    if (!classId) {
+      console.warn(`❌ 클래스 ID 없음: ${c.class}`);
+      continue;
+    }
+
+    try {
+      const res = await fetch("/rankget", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ serverid: serverId, classid: classId, t: "1" })
+      });
+      const data = await res.json();
+
+      console.log(`🔍 [${c.id}] (${c.class}) 랭킹 데이터:`, data.rows?.slice(0, 3) || data); // 상위 3명만 출력
+
+    } catch (err) {
+      console.error(`❌ 조회 실패: ${c.id} (${c.class})`, err);
+    }
+
+    await new Promise(resolve => setTimeout(resolve, 300)); // 서버에 부담 안 주려고 300ms 딜레이
+  }
+}
+
+
 
 window.addEventListener("DOMContentLoaded", () => {
   const host = getHostFromURL();
@@ -354,8 +394,13 @@ window.addEventListener("DOMContentLoaded", () => {
   fetchCharacters().then(() => {
     if (window.location.pathname === "/app/") {
       showAllMembers();
+	  fetchAllRankings();
+
     } else if (window.location.pathname.startsWith("/app/partyList") && host) {
       renderHostParty(host);
     }
   });
 });
+
+
+
