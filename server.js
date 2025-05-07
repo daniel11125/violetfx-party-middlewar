@@ -63,7 +63,6 @@ app.get("/party/:host", (req, res) => {
 app.post("/rankget", async (req, res) => {
   const { serverid, classid, t, id, className } = req.body;
 
-    console.log("🧾 요청 데이터:", { serverid, classid, t, id, className }); // 이거 추가해봐
 
 
   if (!serverid || !classid || !t || !id || !className) {
@@ -76,6 +75,8 @@ app.post("/rankget", async (req, res) => {
   formData.append("s", serverid);     // 서버 ID
   formData.append("c", classid);      // 클래스 ID
   formData.append("search", id);      // 캐릭터명
+
+console.log("🔍 전송될 formData:", formData.toString());
 
 
   try {
