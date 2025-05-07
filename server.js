@@ -81,22 +81,22 @@ app.post("/rankget", async (req, res) => {
     });
 
     // ✅ 서버 선택 드롭다운 열기
-    await page.click('.ranking_container .server_class_wrap .select_box:nth-of-type(1) .selected span');
+	await page.click('.select_server .select_box[data-mm-selectbox]');
 
     // ✅ 서버 ID 선택
-    await page.click(`.ranking_container .server_class_wrap li[data-serverid="${serverid}"]`);
+	await page.click(`.select_server li[data-serverid="${serverid}"]`);
 
-    // ✅ 클래스 선택 드롭다운 열기
-    await page.click('.ranking_container .server_class_wrap .select_box:nth-of-type(2) .selected span');
+	// 클래스 드롭다운 열기
+	await page.click('.select_class .select_box[data-mm-selectbox]');
 
-    // ✅ 클래스 ID 선택
-    await page.click(`.ranking_container .server_class_wrap li[data-classid="${classid}"]`);
+	// 클래스 ID 선택
+	await page.click(`.select_class li[data-classid="${classid}"]`);
 
     // ✅ 캐릭터명 입력
-    await page.type('.ranking_container .character_search_wrap input[name="search"]', id);
+    await page.type('.character_search_wrap input[name="search"]', id);
 
     // ✅ 검색 버튼 클릭
-    await page.click('.ranking_container .character_search_wrap .search_button');
+    await page.click('.character_search_wrap .search_button');
 
     // ✅ 결과 항목 대기
     await page.waitForSelector('li.item', { timeout: 5000 });
