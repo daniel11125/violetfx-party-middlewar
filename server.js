@@ -61,23 +61,42 @@ app.get("/party/:host", (req, res) => {
 
 import puppeteer from 'puppeteer';
 
+
 app.post("/rankget", async (req, res) => {
-  const { id, className } = req.body;
+  const { id, classid = "0", serverid = "3", className } = req.body;
 
   if (!id || !className) {
     return res.status(400).json({ error: "id, className 파라미터가 필요합니다." });
   }
 
   try {
-    const browser = await puppeteer.launch({ 
-		headless: true,			
-		args: ['--no-sandbox', '--disable-setuid-sandbox']
-	});
+    const browser = await puppeteer.launch({
+      headless: true,
+      args: ['--no-sandbox', '--disable-setuid-sandbox']
+    });
 
     const page = await browser.newPage();
-
     await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", { waitUntil: "networkidle0" });
 
+    // ✅ 서버 선택
+    await page.evaluate((serverid) => {
+      const serverBox = document.querySelectorAll('.select_box')[0];
+      serverBox.querySelector('.selected').click();
+
+      const target = serverBox.querySelector(`li[data-serverid="${serverid}"]`);
+      if (target) target.click();
+    }, serverid);
+
+    // ✅ 클래스 선택
+    await page.evaluate((classid) => {
+      const classBox = document.querySelectorAll('.select_box')[1];
+      classBox.querySelector('.selected').click();
+
+      const target = classBox.querySelector(`li[data-classid="${classid}"]`);
+      if (target) target.click();
+    }, classid);
+
+    // ✅ 캐릭터명 입력 및 검색
     await page.type('input[name="search"]', id);
     await page.click('.search_button');
 
@@ -106,6 +125,7 @@ app.post("/rankget", async (req, res) => {
     return res.status(500).json({ error: "Puppeteer 실패", detail: err.message });
   }
 });
+
 
 
 
