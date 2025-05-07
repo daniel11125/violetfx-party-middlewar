@@ -45,6 +45,36 @@ app.get("/party/:host", (req, res) => {
   }
 });
 
+// ✅ 마비노기 모바일 랭킹 프록시 API
+app.post("/rankget", async (req, res) => {
+  const { serverid, classid, t } = req.body;
+
+  if (!serverid || !classid || !t) {
+    return res.status(400).json({ error: "serverid, classid, t \uD30C\uB77C\uBBF8\uD130\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4." });
+  }
+
+  const formData = new URLSearchParams();
+  formData.append("serverid", serverid);
+  formData.append("classid", classid);
+  formData.append("t", t);
+
+  try {
+    const response = await fetch("https://mabinogimobile.nexon.com/Ranking/GetRankList", {
+      method: "POST",
+      body: formData,
+      headers: {
+        "Content-Type": "application/x-www-form-urlencoded"
+      }
+    });
+
+    const data = await response.json();
+    res.json(data);
+  } catch (error) {
+    res.status(500).json({ error: "\uB9C8\uBE44\uB178\uAE30 \uC11C\uBC84 \uC694\uCCAD \uC2E4\uD328", detail: error.message });
+  }
+});
+
+
 // ✅ 정적 HTML/JS/CSS 제공
 app.use("/app", express.static(path.join(__dirname, "public/app")));
 
