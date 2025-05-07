@@ -73,7 +73,8 @@ app.post("/rankget", async (req, res) => {
 
   try {
     browser = await puppeteer.launch({
-      headless: true,
+      headless: false,
+		  slowMo: 100,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
 
