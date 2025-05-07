@@ -59,14 +59,14 @@ app.get("/party/:host", (req, res) => {
   }
 });
 
+
 import puppeteer from 'puppeteer';
 
-
 app.post("/rankget", async (req, res) => {
-  const { id, classid = "0", serverid = "3", className } = req.body;
+  const { id, classid = "0", serverid = "3" } = req.body;
 
-  if (!id || !className) {
-    return res.status(400).json({ error: "id, className 파라미터가 필요합니다." });
+  if (!id) {
+    return res.status(400).json({ error: "id 파라미터가 필요합니다." });
   }
 
   let browser;
@@ -83,29 +83,25 @@ app.post("/rankget", async (req, res) => {
       timeout: 15000,
     });
 
-    // ✅ 서버 선택 드롭다운 열기 및 선택
+    // ✅ 서버 선택
     await page.click('.select_server .select_box[data-mm-selectbox]');
     await page.waitForSelector(`.select_server li[data-serverid="${serverid}"]`);
     await page.click(`.select_server li[data-serverid="${serverid}"]`);
 
-    // ✅ 클래스 선택 드롭다운 열기 및 선택
+    // ✅ 클래스 선택
     await page.click('.select_class .select_box[data-mm-selectbox]');
     await page.waitForSelector(`.select_class li[data-classid="${classid}"]`);
     await page.click(`.select_class li[data-classid="${classid}"]`);
 
-    // ✅ 캐릭터명 입력 전 초기화
+    // ✅ 검색어 입력
     await page.evaluate(() => {
       document.querySelector('input[name="search"]').value = "";
     });
     await page.type('.character_search_wrap input[name="search"]', id);
-
-    // ✅ 검색 버튼 클릭
     await page.click('.character_search_wrap .search_button');
 
-    // ✅ 결과 항목 대기
     await page.waitForSelector('li.item', { timeout: 5000 });
 
-    // ✅ 데이터 추출
     const result = await page.evaluate(() => {
       const item = document.querySelector("li.item");
       if (!item) return null;
@@ -115,14 +111,18 @@ app.post("/rankget", async (req, res) => {
         .find(dl => dl.querySelector("dt")?.textContent.includes("전투력"))
         ?.querySelector("dd")?.textContent.trim().replace(/,/g, "");
 
-      return { name, power };
+      const classx = [...item.querySelectorAll("dl")]
+        .find(dl => dl.querySelector("dt")?.textContent.includes("클래스"))
+        ?.querySelector("dd")?.textContent.trim();
+
+      return { name, power, classx };
     });
 
     if (!result || !result.name || !result.power || isNaN(result.power)) {
       return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
     }
 
-    return res.json({ id: result.name, class: className, power: result.power });
+    return res.json({ id: result.name, power: result.power, classx: result.classx });
 
   } catch (err) {
     console.error("🛑 Puppeteer 에러:", err);
@@ -131,7 +131,6 @@ app.post("/rankget", async (req, res) => {
     if (browser) await browser.close();
   }
 });
-
 
 
 
