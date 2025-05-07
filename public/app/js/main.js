@@ -354,25 +354,14 @@ const classIdMap = {
 async function fetchAllRankings() {
   console.log("✅ 랭킹 조회 시작");
 
-  const serverId = 3;
-  const classId = 0
   const testCharacters = characters.slice(0, 1); // 실제 적용시 전체로 교체
 
   for (let c of testCharacters) {
-    const classId = classIdMap[c.class];
-    if (!classId) {
-      console.warn(`❌ 클래스 ID 없음: ${c.class}`);
-      continue;
-    }
-
     try {
       const res = await fetch("https://violetfx-party-middlewar-production.up.railway.app/rankget", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          serverid: "3",
-          classid: "0",
-          t: "1",
           id: c.id,
           className: c.class
         })

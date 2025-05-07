@@ -59,79 +59,51 @@ app.get("/party/:host", (req, res) => {
   }
 });
 
-// ✅ 마비노기 모바일 랭킹 프록시 API
+import puppeteer from 'puppeteer';
+
 app.post("/rankget", async (req, res) => {
-  const { serverid, classid, t, id, className } = req.body;
+  const { id, className } = req.body;
 
-
-
-  if (!serverid || !classid || !t || !id || !className) {
-    return res.status(400).json({ error: "serverid, classid, t, id, className 파라미터가 필요합니다." });
+  if (!id || !className) {
+    return res.status(400).json({ error: "id, className 파라미터가 필요합니다." });
   }
-
-  const formData = new URLSearchParams();
-  formData.append("t", t);            // 랭킹 타입
-  formData.append("pageno", "1");     // 페이지 번호 (고정)
-  formData.append("s", serverid);     // 서버 ID
-  formData.append("c", classid);      // 클래스 ID
-  formData.append("search", id);      // 캐릭터명
-
-console.log("🔍 전송될 formData:", formData.toString());
-
 
   try {
-    const response = await fetch("https://mabinogimobile.nexon.com/Ranking/List/rankdata", {
-      method: "POST",
-      body: formData,
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "Mozilla/5.0",
-        "Referer": "https://mabinogimobile.nexon.com/Ranking/List?t=1"
-      }
+    const browser = await puppeteer.launch({ headless: true });
+    const page = await browser.newPage();
+
+    await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", { waitUntil: "networkidle0" });
+
+    await page.type('input[name="search"]', id);
+    await page.click('.search_button');
+
+    await page.waitForSelector('li.item', { timeout: 5000 });
+
+    const result = await page.evaluate(() => {
+      const item = document.querySelector("li.item");
+      if (!item) return null;
+
+      const name = item.querySelector('dd[data-charactername]')?.textContent.trim();
+      const power = [...item.querySelectorAll("dl")]
+        .find(dl => dl.querySelector("dt")?.textContent.includes("전투력"))
+        ?.querySelector("dd")?.textContent.trim().replace(/,/g, "");
+
+      return { name, power };
     });
 
+    await browser.close();
 
-    const rawText = await response.text();
+    if (!result) return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
 
-    if (rawText.trim().startsWith("<")) {
-      const $ = cheerio.load(rawText);
-      let result = null;
+    return res.json({ id: result.name, class: className, power: result.power });
 
-      $("li.item").each((i, el) => {
-        const name = $(el).find("dd[data-charactername]").text().trim();
-        const power = $(el)
-          .find("dl")
-          .filter((_, dl) => $(dl).find("dt").text().includes("전투력"))
-          .find("dd")
-          .text()
-          .replace(/,/g, "")
-          .trim();
-
-        if (name === id) {
-          result = {
-            id,
-            class: className,
-            power
-          };
-          return false; // break loop
-        }
-      });
-
-      if (result) return res.json(result);
-      return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
-    }
-
-    // 혹시 JSON이라면...
-    const data = JSON.parse(rawText);
-    res.json(data);
-
-  } catch (error) {
-    res.status(500).json({
-      error: "마비노기 서버 요청 실패",
-      detail: error.message
-    });
+  } catch (err) {
+    console.error("🛑 Puppeteer 에러:", err);
+    return res.status(500).json({ error: "Puppeteer 실패", detail: err.message });
   }
 });
+
+
 
 
 
