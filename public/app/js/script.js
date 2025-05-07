@@ -644,6 +644,7 @@ const classIdMap = {
 
 
 async function fetchAllRankings() {
+	console.log("testcode")
   const serverId = 3;
   for (let c of characters) {
     const classId = classIdMap[c.class];
