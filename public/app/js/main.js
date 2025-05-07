@@ -354,7 +354,7 @@ const classIdMap = {
 async function fetchAllRankings() {
   console.log("✅ 랭킹 조회 시작");
 
-  const testCharacters = characters.slice(0, 1); // 실제 적용시 전체로 교체
+  const testCharacters = characters.slice(0, 2); // 실제 적용시 전체로 교체
 
   for (let c of testCharacters) {
     try {

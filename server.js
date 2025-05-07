@@ -60,7 +60,13 @@ app.get("/party/:host", (req, res) => {
 });
 
 
-import puppeteer from 'puppeteer';
+
+
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
+
+// 스텔스 플러그인 사용
+puppeteer.use(StealthPlugin());
 
 app.post("/rankget", async (req, res) => {
   const { id, classid = "0", serverid = "3" } = req.body;
@@ -73,50 +79,58 @@ app.post("/rankget", async (req, res) => {
 
   try {
     browser = await puppeteer.launch({
-      headless: false,
-      args: ['--no-sandbox', '--disable-setuid-sandbox']
+      headless: true,
+      args: [
+        '--no-sandbox',
+        '--disable-setuid-sandbox',
+        '--disable-blink-features=AutomationControlled'
+      ],
+      defaultViewport: { width: 1280, height: 800 }
     });
 
     const page = await browser.newPage();
+
+    await page.setUserAgent(
+      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
+      "(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    );
+
     await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", {
-      waitUntil: "networkidle0",
-      timeout: 15000,
+      waitUntil: "domcontentloaded",
+      timeout: 60000,
     });
 
-    // ✅ 서버 선택
-    await page.click('.select_server .select_box[data-mm-selectbox]');
-    await page.waitForSelector(`.select_server li[data-serverid="${serverid}"]`);
-    await page.click(`.select_server li[data-serverid="${serverid}"]`);
-
-    // ✅ 클래스 선택
-    await page.click('.select_class .select_box[data-mm-selectbox]');
-    await page.waitForSelector(`.select_class li[data-classid="${classid}"]`);
-    await page.click(`.select_class li[data-classid="${classid}"]`);
-
-    // ✅ 검색어 입력
+    // 캐릭터명 입력
+    await page.waitForSelector('input[name="search"]', { timeout: 10000 });
     await page.evaluate(() => {
       document.querySelector('input[name="search"]').value = "";
     });
-    await page.type('.character_search_wrap input[name="search"]', id);
-    await page.click('.character_search_wrap .search_button');
+    await page.type('input[name="search"]', id);
+    await page.click('.search_button');
 
-    await page.waitForSelector('li.item', { timeout: 5000 });
+    // 결과 대기
+    await page.waitForSelector('li.item', { timeout: 10000 });
 
-    const result = await page.evaluate(() => {
-      const item = document.querySelector("li.item");
-      if (!item) return null;
+    // 데이터 추출
+    const result = await page.evaluate((expectedName) => {
+      const items = document.querySelectorAll("li.item");
+      for (let item of items) {
+        const nameEl = item.querySelector('dd[data-charactername]');
+        const name = nameEl?.textContent.trim();
+        if (name === expectedName) {
+          const power = [...item.querySelectorAll("dl")]
+            .find(dl => dl.querySelector("dt")?.textContent.includes("전투력"))
+            ?.querySelector("dd")?.textContent.trim().replace(/,/g, "");
 
-      const name = item.querySelector('dd[data-charactername]')?.textContent.trim();
-      const power = [...item.querySelectorAll("dl")]
-        .find(dl => dl.querySelector("dt")?.textContent.includes("전투력"))
-        ?.querySelector("dd")?.textContent.trim().replace(/,/g, "");
+          const classx = [...item.querySelectorAll("dl")]
+            .find(dl => dl.querySelector("dt")?.textContent.includes("클래스"))
+            ?.querySelector("dd")?.textContent.trim();
 
-      const classx = [...item.querySelectorAll("dl")]
-        .find(dl => dl.querySelector("dt")?.textContent.includes("클래스"))
-        ?.querySelector("dd")?.textContent.trim();
-
-      return { name, power, classx };
-    });
+          return { name, power, classx };
+        }
+      }
+      return null;
+    }, id);
 
     if (!result || !result.name || !result.power || isNaN(result.power)) {
       return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
@@ -131,7 +145,6 @@ app.post("/rankget", async (req, res) => {
     if (browser) await browser.close();
   }
 });
-
 
 
 

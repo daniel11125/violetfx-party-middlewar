@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head><meta charset="UTF-8"><title>Test</title></head>
+<body>
+  <button onclick="test()">전송</button>
+  <pre id="result"></pre>
+
+  <script>
+    async function test() {
+      const res = await fetch('http://localhost:3000/rankget', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: '킹횽', classid: '0', serverid: '3' })
+      });
+      const data = await res.json();
+      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>
