@@ -365,7 +365,7 @@ async function fetchAllRankings() {
     }
 
     try {
-      const res = await fetch("https://violetfx-party-middleware-production.up.railway.app/rankget", {
+      const res = await fetch("https://violetfx-party-middlewar-production.up.railway.app/rankget", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
