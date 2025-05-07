@@ -352,10 +352,10 @@ const classIdMap = {
 
 
 async function fetchAllRankings() {
-	console.log("testcode")
-  const serverId = 3;
-  const testCharacters = characters.slice(0, 1);
+  console.log("✅ 랭킹 조회 시작");
 
+  const serverId = 3;
+  const testCharacters = characters.slice(0, 1); // 실제 적용시 전체로 교체
 
   for (let c of testCharacters) {
     const classId = classIdMap[c.class];
@@ -369,22 +369,27 @@ async function fetchAllRankings() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-		  serverid: serverId,
-		  classid: classId,
-		  t: "1",
-		  id: c.id,
-		  className: c.class
-		})
+          serverid: serverId,
+          classid: classId,
+          t: "1",
+          id: c.id,
+          className: c.class
+        })
       });
+
       const data = await res.json();
 
-      console.log(`🔍 [${c.id}] (${c.class}) 랭킹 데이터:`, data.rows?.slice(0, 3) || data); // 상위 3명만 출력
+      if (data && data.power) {
+        console.log(`💪 ${data.id} (${data.class}) 전투력: ${data.power}`);
+      } else {
+        console.warn(`⚠️ 전투력 정보 없음:`, data);
+      }
 
     } catch (err) {
       console.error(`❌ 조회 실패: ${c.id} (${c.class})`, err);
     }
 
-    await new Promise(resolve => setTimeout(resolve, 300)); // 서버에 부담 안 주려고 300ms 딜레이
+    await new Promise(resolve => setTimeout(resolve, 300)); // 서버 부담 방지
   }
 }
 
