@@ -2,7 +2,7 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';함
+import * as cheerio from 'cheerio';
 
 const app = express();
 const port = process.env.PORT || 3000;
