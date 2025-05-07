@@ -379,6 +379,8 @@ async function fetchAllRankings() {
 
       const data = await res.json();
 
+console.log(c)
+
       if (data && data.power) {
         console.log(`💪 ${data.id} (${data.class}) 전투력: ${data.power}`);
       } else {

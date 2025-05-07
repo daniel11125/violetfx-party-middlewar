@@ -63,6 +63,9 @@ app.get("/party/:host", (req, res) => {
 app.post("/rankget", async (req, res) => {
   const { serverid, classid, t, id, className } = req.body;
 
+    console.log("🧾 요청 데이터:", { serverid, classid, t, id, className }); // 이거 추가해봐
+
+
   if (!serverid || !classid || !t || !id || !className) {
     return res.status(400).json({ error: "serverid, classid, t, id, className 파라미터가 필요합니다." });
   }
