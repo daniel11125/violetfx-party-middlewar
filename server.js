@@ -26,6 +26,14 @@ app.use((req, res, next) => {
   next();
 });
 
+app.options("*", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+  res.sendStatus(200);
+});
+
+
 // ✅ 파티 수신 API (Violet FX 봇에서 사용)
 app.post("/api/party", (req, res) => {
   latestParty = req.body;
