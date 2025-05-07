@@ -61,6 +61,7 @@ app.get("/party/:host", (req, res) => {
 
 import puppeteer from 'puppeteer';
 
+
 app.post("/rankget", async (req, res) => {
   const { id, classid = "0", serverid = "3", className } = req.body;
 
@@ -68,8 +69,10 @@ app.post("/rankget", async (req, res) => {
     return res.status(400).json({ error: "id, className 파라미터가 필요합니다." });
   }
 
+  let browser;
+
   try {
-    const browser = await puppeteer.launch({
+    browser = await puppeteer.launch({
       headless: true,
       args: ['--no-sandbox', '--disable-setuid-sandbox']
     });
@@ -80,19 +83,20 @@ app.post("/rankget", async (req, res) => {
       timeout: 15000,
     });
 
-    // ✅ 서버 선택 드롭다운 열기
-	await page.click('.select_server .select_box[data-mm-selectbox]');
+    // ✅ 서버 선택 드롭다운 열기 및 선택
+    await page.click('.select_server .select_box[data-mm-selectbox]');
+    await page.waitForSelector(`.select_server li[data-serverid="${serverid}"]`);
+    await page.click(`.select_server li[data-serverid="${serverid}"]`);
 
-    // ✅ 서버 ID 선택
-	await page.click(`.select_server li[data-serverid="${serverid}"]`);
+    // ✅ 클래스 선택 드롭다운 열기 및 선택
+    await page.click('.select_class .select_box[data-mm-selectbox]');
+    await page.waitForSelector(`.select_class li[data-classid="${classid}"]`);
+    await page.click(`.select_class li[data-classid="${classid}"]`);
 
-	// 클래스 드롭다운 열기
-	await page.click('.select_class .select_box[data-mm-selectbox]');
-
-	// 클래스 ID 선택
-	await page.click(`.select_class li[data-classid="${classid}"]`);
-
-    // ✅ 캐릭터명 입력
+    // ✅ 캐릭터명 입력 전 초기화
+    await page.evaluate(() => {
+      document.querySelector('input[name="search"]').value = "";
+    });
     await page.type('.character_search_wrap input[name="search"]', id);
 
     // ✅ 검색 버튼 클릭
@@ -114,9 +118,7 @@ app.post("/rankget", async (req, res) => {
       return { name, power };
     });
 
-    await browser.close();
-
-    if (!result) {
+    if (!result || !result.name || !result.power || isNaN(result.power)) {
       return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
     }
 
@@ -125,8 +127,11 @@ app.post("/rankget", async (req, res) => {
   } catch (err) {
     console.error("🛑 Puppeteer 에러:", err);
     return res.status(500).json({ error: "Puppeteer 실패", detail: err.message });
+  } finally {
+    if (browser) await browser.close();
   }
 });
+
 
 
 
