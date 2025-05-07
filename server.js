@@ -51,16 +51,16 @@ app.get("/party/:host", (req, res) => {
 
 // ✅ 마비노기 모바일 랭킹 프록시 API
 app.post("/rankget", async (req, res) => {
-  const { serverid, classid } = req.body;
+  const { serverid, classid, t, id, className } = req.body;
 
-  if (!serverid || !classid) {
-    return res.status(400).json({ error: "serverid, classid 파라미터가 필요합니다." });
+  if (!serverid || !classid || !t || !id || !className) {
+    return res.status(400).json({ error: "serverid, classid, t, id, className 파라미터가 필요합니다." });
   }
 
   const formData = new URLSearchParams();
   formData.append("serverid", serverid);
   formData.append("classid", classid);
-  formData.append("t", "1"); // 고정값
+  formData.append("t", t);
 
   try {
     const response = await fetch("https://mabinogimobile.nexon.com/Ranking/GetRankList", {
@@ -75,24 +75,37 @@ app.post("/rankget", async (req, res) => {
 
     const rawText = await response.text();
 
-    // HTML일 경우 cheerio로 크롤링
     if (rawText.trim().startsWith("<")) {
       const $ = cheerio.load(rawText);
-      const rows = [];
+      let result = null;
 
-      $("table tbody tr").each((i, el) => {
-        const columns = $(el).find("td").map((i, td) => $(td).text().trim()).get();
-        if (columns.length) {
-          rows.push(columns);
+      $("li.item").each((i, el) => {
+        const name = $(el).find("dd[data-charactername]").text().trim();
+        const power = $(el)
+          .find("dl")
+          .filter((_, dl) => $(dl).find("dt").text().includes("전투력"))
+          .find("dd")
+          .text()
+          .replace(/,/g, "")
+          .trim();
+
+        if (name === id) {
+          result = {
+            id,
+            class: className,
+            power
+          };
+          return false; // break loop
         }
       });
 
-      return res.json({ type: "html", rows });
+      if (result) return res.json(result);
+      return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
     }
 
-    // JSON일 경우 그대로 전달
+    // 혹시 JSON이라면...
     const data = JSON.parse(rawText);
-    res.json({ type: "json", ...data });
+    res.json(data);
 
   } catch (error) {
     res.status(500).json({
@@ -101,6 +114,8 @@ app.post("/rankget", async (req, res) => {
     });
   }
 });
+
+
 
 
 // ✅ 정적 HTML/JS/CSS 제공

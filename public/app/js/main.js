@@ -368,7 +368,13 @@ async function fetchAllRankings() {
       const res = await fetch("/rankget", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ serverid: serverId, classid: classId, t: "1" })
+        body: JSON.stringify({
+		  serverid: serverId,
+		  classid: classId,
+		  t: "1",
+		  id: c.id,
+		  className: c.class
+		})
       });
       const data = await res.json();
 
