@@ -354,7 +354,7 @@ const classIdMap = {
 async function fetchAllRankings() {
 	console.log("testcode")
   const serverId = 3;
-  const testCharacters = characters.slice(0, 2);
+  const testCharacters = characters.slice(0, 1);
 
 
   for (let c of testCharacters) {

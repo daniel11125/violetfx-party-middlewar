@@ -1,6 +1,7 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import cheerio from "cheerio"; // ESM 방식일 경우
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -47,16 +48,16 @@ app.get("/party/:host", (req, res) => {
 
 // ✅ 마비노기 모바일 랭킹 프록시 API
 app.post("/rankget", async (req, res) => {
-  const { serverid, classid, t } = req.body;
+  const { serverid, classid } = req.body;
 
-  if (!serverid || !classid || !t) {
-    return res.status(400).json({ error: "serverid, classid, t 파라미터가 필요합니다." });
+  if (!serverid || !classid) {
+    return res.status(400).json({ error: "serverid, classid 파라미터가 필요합니다." });
   }
 
   const formData = new URLSearchParams();
   formData.append("serverid", serverid);
   formData.append("classid", classid);
-  formData.append("t", t);
+  formData.append("t", "1"); // 고정값
 
   try {
     const response = await fetch("https://mabinogimobile.nexon.com/Ranking/GetRankList", {
@@ -64,25 +65,31 @@ app.post("/rankget", async (req, res) => {
       body: formData,
       headers: {
         "Content-Type": "application/x-www-form-urlencoded",
-        "User-Agent": "Mozilla/5.0", // 브라우저 흉내
-        "Referer": "https://mabinogimobile.nexon.com/Ranking/List?t=1" // 요청 출처 지정
+        "User-Agent": "Mozilla/5.0",
+        "Referer": "https://mabinogimobile.nexon.com/Ranking/List?t=1"
       }
     });
 
     const rawText = await response.text();
 
-    // 응답이 HTML일 경우 JSON 파싱 전에 필터
+    // HTML일 경우 cheerio로 크롤링
     if (rawText.trim().startsWith("<")) {
-      return res.status(502).json({
-        error: "마비노기 서버에서 HTML 응답이 반환되었습니다.",
-        detail: "로그인 또는 접근 차단일 수 있습니다.",
-        preview: rawText.slice(0, 300)
+      const $ = cheerio.load(rawText);
+      const rows = [];
+
+      $("table tbody tr").each((i, el) => {
+        const columns = $(el).find("td").map((i, td) => $(td).text().trim()).get();
+        if (columns.length) {
+          rows.push(columns);
+        }
       });
+
+      return res.json({ type: "html", rows });
     }
 
-    // JSON으로 파싱
+    // JSON일 경우 그대로 전달
     const data = JSON.parse(rawText);
-    res.json(data);
+    res.json({ type: "json", ...data });
 
   } catch (error) {
     res.status(500).json({
@@ -91,7 +98,6 @@ app.post("/rankget", async (req, res) => {
     });
   }
 });
-
 
 
 // ✅ 정적 HTML/JS/CSS 제공
