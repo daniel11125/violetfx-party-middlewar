@@ -142,6 +142,9 @@ app.get("/", (req, res) => {
 });
 
 // ✅ 서버 시작
+
+
+
 app.listen(port, () => {
-  console.log(`✅ 미들웨어 서버 실행 중: http://localhost:${port}`);
+  console.log(`✅ 미들웨어 서버 실행 중: http://port:${port}`);
 });
