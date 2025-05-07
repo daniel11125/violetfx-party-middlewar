@@ -61,7 +61,6 @@ app.get("/party/:host", (req, res) => {
 
 import puppeteer from 'puppeteer';
 
-
 app.post("/rankget", async (req, res) => {
   const { id, classid = "0", serverid = "3", className } = req.body;
 
@@ -76,32 +75,33 @@ app.post("/rankget", async (req, res) => {
     });
 
     const page = await browser.newPage();
-    await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", { waitUntil: "networkidle0" });
+    await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", {
+      waitUntil: "networkidle0",
+      timeout: 15000,
+    });
 
-    // ✅ 서버 선택
-    await page.evaluate((serverid) => {
-      const serverBox = document.querySelectorAll('.select_box')[0];
-      serverBox.querySelector('.selected').click();
+    // ✅ 서버 선택 드롭다운 열기
+    await page.click('section.ranking_container .server_class_wrap .select_box:nth-of-type(1) .selected span');
 
-      const target = serverBox.querySelector(`li[data-serverid="${serverid}"]`);
-      if (target) target.click();
-    }, serverid);
+    // ✅ 서버 ID 선택
+    await page.click(`section.ranking_container .server_class_wrap li[data-serverid="${serverid}"]`);
 
-    // ✅ 클래스 선택
-    await page.evaluate((classid) => {
-      const classBox = document.querySelectorAll('.select_box')[1];
-      classBox.querySelector('.selected').click();
+    // ✅ 클래스 선택 드롭다운 열기
+    await page.click('section.ranking_container .server_class_wrap .select_box:nth-of-type(2) .selected span');
 
-      const target = classBox.querySelector(`li[data-classid="${classid}"]`);
-      if (target) target.click();
-    }, classid);
+    // ✅ 클래스 ID 선택
+    await page.click(`section.ranking_container .server_class_wrap li[data-classid="${classid}"]`);
 
-    // ✅ 캐릭터명 입력 및 검색
-    await page.type('input[name="search"]', id);
-    await page.click('.search_button');
+    // ✅ 캐릭터명 입력
+    await page.type('section.ranking_container .character_search_wrap input[name="search"]', id);
 
+    // ✅ 검색 버튼 클릭
+    await page.click('section.ranking_container .character_search_wrap .search_button');
+
+    // ✅ 결과 항목 대기
     await page.waitForSelector('li.item', { timeout: 5000 });
 
+    // ✅ 데이터 추출
     const result = await page.evaluate(() => {
       const item = document.querySelector("li.item");
       if (!item) return null;
@@ -116,7 +116,9 @@ app.post("/rankget", async (req, res) => {
 
     await browser.close();
 
-    if (!result) return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
+    if (!result) {
+      return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
+    }
 
     return res.json({ id: result.name, class: className, power: result.power });
 
