@@ -1,7 +1,8 @@
 import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import cheerio from "cheerio"; // ESM 방식일 경우
+import fetch from 'node-fetch';
+import * as cheerio from 'cheerio';함
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -11,6 +12,8 @@ let latestParty = [];
 // ✅ ESM 환경에서 __dirname 정의
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+
 
 // ✅ JSON 바디 파서
 app.use(express.json());
