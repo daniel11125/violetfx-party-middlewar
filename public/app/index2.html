@@ -29,8 +29,9 @@
       // 1. 캐릭터 불러오기
       const sheetRes = await fetch("https://api.sheetbest.com/sheets/776e2812-99b8-4f67-ae74-4b0fa2d6a060");
       const characters = await sheetRes.json();
+  const testCharacters = characters.slice(0, 2); // 실제 적용시 전체로 교체
 
-      for (let c of characters) {
+      for (let c of testCharacters) {
         if (!c.id) continue;
         log(`🔍 ${c.id} 조회 중...`);
 
