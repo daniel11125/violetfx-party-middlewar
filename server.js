@@ -2,7 +2,11 @@ import express from 'express';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import fetch from 'node-fetch';
-import * as cheerio from 'cheerio';
+import rankRouter from "./routes/rank.js";
+import ranksaveRouter from "./routes/ranksave.js";
+
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -61,93 +65,10 @@ app.get("/party/:host", (req, res) => {
 
 
 
+app.use("/rankget", rankRouter);
 
-import puppeteer from 'puppeteer-extra';
-import StealthPlugin from 'puppeteer-extra-plugin-stealth';
-
-// 스텔스 플러그인 사용
-puppeteer.use(StealthPlugin());
-
-app.post("/rankget", async (req, res) => {
-  const { id, classid = "0", serverid = "3" } = req.body;
-
-  if (!id) {
-    return res.status(400).json({ error: "id 파라미터가 필요합니다." });
-  }
-
-  let browser;
-
-  try {
-    browser = await puppeteer.launch({
-      headless: true,
-      args: [
-        '--no-sandbox',
-        '--disable-setuid-sandbox',
-        '--disable-blink-features=AutomationControlled'
-      ],
-      defaultViewport: { width: 1280, height: 800 }
-    });
-
-    const page = await browser.newPage();
-
-    await page.setUserAgent(
-      "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
-      "(KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
-    );
-
-    await page.goto("https://mabinogimobile.nexon.com/Ranking/List?t=1", {
-      waitUntil: "domcontentloaded",
-      timeout: 60000,
-    });
-
-    // 캐릭터명 입력
-    await page.waitForSelector('input[name="search"]', { timeout: 10000 });
-    await page.evaluate(() => {
-      document.querySelector('input[name="search"]').value = "";
-    });
-    await page.type('input[name="search"]', id);
-    await page.click('.search_button');
-
-    // 결과 대기
-    await page.waitForSelector('li.item', { timeout: 10000 });
-
-    // 데이터 추출
-    const result = await page.evaluate((expectedName) => {
-      const items = document.querySelectorAll("li.item");
-      for (let item of items) {
-        const nameEl = item.querySelector('dd[data-charactername]');
-        const name = nameEl?.textContent.trim();
-        if (name === expectedName) {
-          const power = [...item.querySelectorAll("dl")]
-            .find(dl => dl.querySelector("dt")?.textContent.includes("전투력"))
-            ?.querySelector("dd")?.textContent.trim().replace(/,/g, "");
-
-          const classx = [...item.querySelectorAll("dl")]
-            .find(dl => dl.querySelector("dt")?.textContent.includes("클래스"))
-            ?.querySelector("dd")?.textContent.trim();
-
-          return { name, power, classx };
-        }
-      }
-      return null;
-    }, id);
-
-    if (!result || !result.name || !result.power || isNaN(result.power)) {
-      return res.status(404).json({ error: "캐릭터를 찾을 수 없습니다." });
-    }
-
-    return res.json({ id: result.name, power: result.power, classx: result.classx });
-
-  } catch (err) {
-    console.error("🛑 Puppeteer 에러:", err);
-    return res.status(500).json({ error: "Puppeteer 실패", detail: err.message });
-  } finally {
-    if (browser) await browser.close();
-  }
-});
-
-
-
+app.use("/ranksave", ranksaveRouter);
+app.use("/db", express.static(path.join(__dirname, "db")));
 
 
 

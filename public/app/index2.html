@@ -1,20 +1,115 @@
 <!DOCTYPE html>
 <html lang="ko">
-<head><meta charset="UTF-8"><title>Test</title></head>
+<head>
+  <meta charset="UTF-8">
+  <title>자동 전투력 조회</title>
+  <style>
+    body { font-family: 'Nanum Gothic', sans-serif; background: #111; color: #eee; padding: 20px; }
+    button { padding: 10px 20px; font-size: 16px; cursor: pointer; }
+    pre { background: #222; padding: 15px; white-space: pre-wrap; border: 1px solid #444; border-radius: 6px; }
+  </style>
+</head>
 <body>
-  <button onclick="test()">전송</button>
-  <pre id="result"></pre>
+  <h2>💾 자동 전투력 조회 및 저장</h2>
+  <button onclick="saveToServer()">서버에 저장하기</button>
+  <pre id="result">⏳ 시작 중...</pre>
 
-  <script>
-    async function test() {
-      const res = await fetch('http://localhost:3000/rankget', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: '킹횽', classid: '0', serverid: '3' })
+<script>
+  async function saveToServer() {
+    const resultEl = document.getElementById("result");
+    const log = (msg) => {
+      console.log(msg);
+      resultEl.textContent += msg + "\n";
+    };
+
+    resultEl.textContent = "📦 캐릭터 조회 시작...\n";
+    const results = [];
+
+    try {
+      // 1. 캐릭터 불러오기
+      const sheetRes = await fetch("https://api.sheetbest.com/sheets/776e2812-99b8-4f67-ae74-4b0fa2d6a060");
+      const characters = await sheetRes.json();
+
+      for (let c of characters) {
+        if (!c.id) continue;
+        log(`🔍 ${c.id} 조회 중...`);
+
+        const data = await fetchRankData(c.id);
+        if (data && data.power) {
+          results.push(data);
+          log(`✅ ${data.id}: ${data.power}`);
+        } else {
+          results.push({ id: c.id, error: true });
+          log(`⚠️ ${c.id} 조회 실패`);
+        }
+
+        await sleep(300);
+      }
+
+      // 2. 실패한 캐릭터 재시도 최대 5회
+      const failed = results.filter(r => r.error);
+      log(`\n🔁 실패한 캐릭터 재시도 (${failed.length}명)`);
+
+      for (let f of failed) {
+        const index = results.findIndex(r => r.id === f.id);
+        const retryData = await retryUntilSuccess(f.id, 5, 500, log);
+        if (retryData && retryData.power && index !== -1) {
+          results[index] = retryData;
+          log(`🟢 재시도 성공: ${retryData.id} - ${retryData.power}`);
+        } else {
+          log(`❌ 재시도 실패: ${f.id}`);
+        }
+      }
+
+      // 3. 성공한 결과만 추출
+      const successOnly = results.filter(r => r && !r.error);
+
+      // 4. 서버 저장
+      log("\n💾 서버에 저장 중...");
+      const saveRes = await fetch("https://violetfx-party-middlewar-production.up.railway.app/ranksave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ data: successOnly })
       });
-      const data = await res.json();
-      document.getElementById('result').textContent = JSON.stringify(data, null, 2);
+
+      const saveData = await saveRes.json();
+      log(`🟢 저장 완료: ${saveData.count}명\n`);
+
+    } catch (err) {
+      console.error("❌ 오류:", err);
+      resultEl.textContent += "❌ 오류 발생: " + err.message;
     }
-  </script>
+  }
+
+  async function fetchRankData(id) {
+    try {
+      const res = await fetch("https://violetfx-party-middlewar-production.up.railway.app/rankget", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id })
+      });
+      const raw = await res.json();
+      return raw.results?.[0];
+    } catch {
+      return null;
+    }
+  }
+
+  async function retryUntilSuccess(id, maxRetries, delay, logFn) {
+    for (let i = 1; i <= maxRetries; i++) {
+      logFn(`🔁 (${i}/${maxRetries}) ${id} 재시도 중...`);
+      const data = await fetchRankData(id);
+      if (data && data.power) return data;
+      await sleep(delay);
+    }
+    return null;
+  }
+
+  function sleep(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
+</script>
+
+
 </body>
 </html>
