@@ -14,7 +14,7 @@ router.post("/", async (req, res) => {
   let browser;
   try {
     browser = await puppeteer.connect({
-      browserWSEndpoint: "wss://chrome.browserless.io?token=t0vxqo3K5L60pRMaNf6Tol9fnueqPTBtv0BNMetIQ0UCX1of"
+      browserWSEndpoint: "wss://browserless-production-41dc.up.railway.app?token=t0vxqo3K5L60pRMaNf6Tol9fnueqPTBtv0BNMetIQ0UCX1of"
     });
 
     const page = await browser.newPage();

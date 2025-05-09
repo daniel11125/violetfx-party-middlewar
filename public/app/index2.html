@@ -67,7 +67,8 @@
 
       // 4. 서버 저장
       log("\n💾 서버에 저장 중...");
-      const saveRes = await fetch("https://violetfx-party-middlewar-production.up.railway.app/ranksave", {
+      const saveRes = await fetch("http://localhost:3000/ranksave", {
+      //const saveRes = await fetch("https://violetfx-party-middlewar-production.up.railway.app/ranksave", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ data: successOnly })
@@ -84,7 +85,8 @@
 
   async function fetchRankData(id) {
     try {
-      const res = await fetch("https://violetfx-party-middlewar-production.up.railway.app/rankget", {
+      const res = await fetch("http://localhost:3000/rankget", {
+      //const res = await fetch("https://violetfx-party-middlewar-production.up.railway.app/rankget", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ id })
